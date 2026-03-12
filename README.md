@@ -24,33 +24,39 @@ guide for an introduction to the framework.
 
 Most developers on the team code using macOS, so we recommend that platform if possible. Some of these steps may not apply to other platforms.
 
-1. Install Xcode Command Line Tools (skips automatically if already installed):
-   `xcode-select -p &>/dev/null || xcode-select --install`
-1. Install homebrew dependencies using the provided setup script, which also
-   installs Docker Desktop only when it is not already present:
+1. Run the developer environment setup script, which checks for and installs
+   Xcode Command Line Tools, Docker Desktop, and all Homebrew dependencies:
    `bin/setup-dev`
-   Alternatively, if you prefer to run `brew bundle` directly, first install
-   [Docker Desktop](https://www.docker.com/products/docker-desktop/) manually
-   if it is not already present (it is no longer in the Brewfile to avoid
-   permission errors when it is already installed).
-   * rbenv
-   * nodenv
-   * [redis]()
-   * [jq](https://stedolan.github.io/jq/)
-   * [PostgreSQL](https://www.postgresql.org/)
-   * [Dockerize](https://github.com/jwilder/dockerize)
-   * [ADR Tools](https://github.com/npryce/adr-tools)
-   * [Graphviz](https://voormedia.github.io/rails-erd/install.html): brew install graphviz
-   * [Chromedriver](https://sites.google.com/chromium.org/driver/)
-     * Chromedriver must be allowed to run. You can either do that by:
-       * The command line: `xattr -d com.apple.quarantine $(which chromedriver)` (this is the only option if you are on Big Sur)
-       * Manually: clicking "allow" when you run the integration tests for the first time and a dialogue opens up
-   * [Ngrok](https://ngrok.com/downloads): brew install ngrok/ngrok/ngrok
-     * Sign up for an account: https://dashboard.ngrok.com/signup
-     * run `ngrok config add-authtoken {token goes here}`
-   * [pre-commit](https://pre-commit.com/)
-     * This configures your local git to run linters locally during a git commit. See [#coding-style-and-linters](#coding-style-and-linters) for a summary of which ones we use.
-     * Run `pre-commit install` to opt-into running these linters. (They will run during CI regardless.)
+
+   <details>
+   <summary>Alternatively, you can run the steps manually</summary>
+
+   * Install Xcode Command Line Tools (skips automatically if already installed):
+     `xcode-select -p &>/dev/null || xcode-select --install`
+   * Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+     manually if it is not already present (it is no longer in the Brewfile to
+     avoid permission errors when it is already installed).
+   * Install homebrew dependencies: `brew bundle`
+     * rbenv
+     * nodenv
+     * [redis](https://redis.io/)
+     * [jq](https://stedolan.github.io/jq/)
+     * [PostgreSQL](https://www.postgresql.org/)
+     * [Dockerize](https://github.com/jwilder/dockerize)
+     * [ADR Tools](https://github.com/npryce/adr-tools)
+     * [Graphviz](https://voormedia.github.io/rails-erd/install.html): brew install graphviz
+     * [Chromedriver](https://sites.google.com/chromium.org/driver/)
+       * Chromedriver must be allowed to run. You can either do that by:
+         * The command line: `xattr -d com.apple.quarantine $(which chromedriver)` (this is the only option if you are on Big Sur)
+         * Manually: clicking "allow" when you run the integration tests for the first time and a dialogue opens up
+     * [Ngrok](https://ngrok.com/downloads): brew install ngrok/ngrok/ngrok
+       * Sign up for an account: https://dashboard.ngrok.com/signup
+       * run `ngrok config add-authtoken {token goes here}`
+     * [pre-commit](https://pre-commit.com/)
+       * This configures your local git to run linters locally during a git commit. See [#coding-style-and-linters](#coding-style-and-linters) for a summary of which ones we use.
+       * Run `pre-commit install` to opt-into running these linters. (They will run during CI regardless.)
+
+   </details>
 1. Set up rbenv and nodenv:
    * `echo 'if which nodenv >/dev/null 2>/dev/null; then eval "$(nodenv init -)"; fi' >> ~/.zshrc`
    * `echo 'if which rbenv >/dev/null 2>/dev/null; then eval "$(rbenv init -)"; fi' >> ~/.zshrc`
