@@ -24,8 +24,15 @@ guide for an introduction to the framework.
 
 Most developers on the team code using macOS, so we recommend that platform if possible. Some of these steps may not apply to other platforms.
 
-1. Install Xcode Command Line Tools: ```xcode-select --install```
-1. Install homebrew dependencies: `brew bundle`
+1. Install Xcode Command Line Tools (skips automatically if already installed):
+   `xcode-select -p &>/dev/null || xcode-select --install`
+1. Install homebrew dependencies using the provided setup script, which also
+   installs Docker Desktop only when it is not already present:
+   `bin/setup-dev`
+   Alternatively, if you prefer to run `brew bundle` directly, first install
+   [Docker Desktop](https://www.docker.com/products/docker-desktop/) manually
+   if it is not already present (it is no longer in the Brewfile to avoid
+   permission errors when it is already installed).
    * rbenv
    * nodenv
    * [redis]()
