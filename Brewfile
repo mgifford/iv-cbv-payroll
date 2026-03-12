@@ -11,7 +11,8 @@ brew "nodenv"
 brew "postgresql@12", link: true
 
 # docker is used for building images for deployment, and in the bin/with-server script
-cask "docker"
+# Note: Docker Desktop is installed conditionally by bin/setup-dev to avoid
+# failures when Docker is already installed outside of Homebrew.
 brew "dockerize"
 
 # helper scripts for creating new ADRs

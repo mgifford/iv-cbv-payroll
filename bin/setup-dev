@@ -1,0 +1,31 @@
+#!/bin/bash
+# Developer environment setup script for macOS.
+# Checks for pre-existing tools before attempting installation to avoid
+# permission errors and unnecessary reinstalls.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+echo "== Checking Xcode Command Line Tools =="
+if xcode-select -p &>/dev/null; then
+  echo "Xcode Command Line Tools already installed, skipping."
+else
+  echo "Installing Xcode Command Line Tools..."
+  xcode-select --install
+fi
+
+echo ""
+echo "== Checking Docker Desktop =="
+if [ -d "/Applications/Docker.app" ] || command -v docker &>/dev/null; then
+  echo "Docker already installed, skipping."
+else
+  echo "Installing Docker Desktop via Homebrew..."
+  brew install --cask docker
+fi
+
+echo ""
+echo "== Installing Homebrew dependencies (brew bundle) =="
+brew bundle --no-lock --file="$REPO_ROOT/Brewfile"
+
+echo ""
+echo "== Dev environment setup complete =="
