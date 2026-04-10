@@ -69,15 +69,16 @@ Rails.application.routes.draw do
           patch :save_review
         end
       end
-      resource :summary, only: %i[show], controller: "summary"
-      resource :submit, only: %i[show update], controller: "submit", format: %i[html pdf]
+      resource :summary, only: %i[show update], controller: "summary"
+      resource :submit, only: %i[show], controller: "submit", format: %i[html pdf]
       resource :success, only: %i[show], controller: "success"
       scope "/income", as: :income do
-        resource :employer_search, only: %i[show], controller: "/cbv/employer_searches"
-        resource :synchronizations, only: %i[show update], controller: "/cbv/synchronizations"
-        resource :synchronization_failures, only: %i[show], controller: "/cbv/synchronization_failures"
-        resource :payment_details, only: %i[show update], controller: "/cbv/payment_details"
+        resource :employer_search, only: %i[show], controller: "income/employer_searches"
+        resource :synchronizations, only: %i[show update], controller: "income/synchronizations"
+        resource :synchronization_failures, only: %i[show], controller: "income/synchronization_failures"
+        resource :payment_details, only: %i[show update], controller: "income/payment_details"
         resources :employment, only: %i[new create edit update], controller: "/activities/employment" do
+          resources :document_uploads, only: %i[new create], controller: "/activities/document_uploads"
           resources :months, only: %i[edit update], controller: "employment/months"
           member do
             get :review
@@ -94,6 +95,7 @@ Rails.application.routes.draw do
         patch "sync", to: "education#sync", as: :sync
         resources :document_uploads, only: %i[new create], controller: "/activities/document_uploads"
         resources :months, only: %i[edit update], controller: "education/months"
+        resources :term_credit_hours, only: %i[edit update], controller: "education/term_credit_hours"
 
         member do
           get :review

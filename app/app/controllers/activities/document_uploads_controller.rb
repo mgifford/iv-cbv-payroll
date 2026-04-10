@@ -2,7 +2,7 @@ class Activities::DocumentUploadsController < Activities::BaseController
   before_action :set_activity
   before_action :set_back_url, only: %i[new]
 
-  helper_method :upload_path
+  helper_method :upload_path, :document_upload_preview_url
 
   def new
   end
@@ -40,6 +40,18 @@ class Activities::DocumentUploadsController < Activities::BaseController
         id: last_month_index,
         from_edit: params[:from_edit].presence
       )
+    elsif params[:education_id]
+      @back_url = edit_activities_flow_education_month_path(
+        education_id: @activity,
+        id: last_month_index,
+        from_edit: params[:from_edit].presence
+      )
+    elsif params[:employment_id]
+      @back_url = edit_activities_flow_income_employment_month_path(
+        employment_id: @activity,
+        id: last_month_index,
+        from_edit: params[:from_edit].presence
+      )
     end
   end
 
@@ -50,6 +62,8 @@ class Activities::DocumentUploadsController < Activities::BaseController
                   @flow.job_training_activities.find(params[:job_training_id])
                 elsif params[:education_id]
                   @flow.education_activities.find(params[:education_id])
+                elsif params[:employment_id]
+                  @flow.employment_activities.find(params[:employment_id])
                 else
                   raise <<~ERROR
                     No activity param matched in DocumentUploadsController#set_activity.
@@ -70,6 +84,8 @@ class Activities::DocumentUploadsController < Activities::BaseController
       review_activities_flow_job_training_path(id: @activity, from_edit: params[:from_edit].presence)
     elsif params[:education_id]
       review_activities_flow_education_path(id: @activity, from_edit: params[:from_edit].presence)
+    elsif params[:employment_id]
+      review_activities_flow_income_employment_path(id: @activity, from_edit: params[:from_edit].presence)
     else
       super
     end
@@ -82,6 +98,8 @@ class Activities::DocumentUploadsController < Activities::BaseController
       activities_flow_job_training_document_uploads_path(from_edit: params[:from_edit].presence)
     elsif params[:education_id]
       activities_flow_education_document_uploads_path(from_edit: params[:from_edit].presence)
+    elsif params[:employment_id]
+      activities_flow_income_employment_document_uploads_path(from_edit: params[:from_edit].presence)
     else
       raise <<~ERROR
         No activity param matched in DocumentUploadsController#upload_path.
@@ -89,5 +107,14 @@ class Activities::DocumentUploadsController < Activities::BaseController
         new activity type.
       ERROR
     end
+  end
+
+  def document_upload_preview_url(attachment)
+    return unless attachment.previewable?
+
+    attachment.preview(resize_to_limit: [ 40, 40 ]).processed.url
+  rescue StandardError => e
+    Rails.logger.warn("Document upload preview unavailable for attachment #{attachment.id}: #{e.class}: #{e.message}")
+    nil
   end
 end

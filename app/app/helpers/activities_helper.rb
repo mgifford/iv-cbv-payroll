@@ -1,6 +1,28 @@
 module ActivitiesHelper
-  def display_progress_indicator?(progress_calculator)
-    progress_calculator.overall_result.total_hours > 0
+  def activity_hub_state(any_activities_added:, monthly_results:)
+    return :empty unless any_activities_added
+
+    monthly_results.all?(&:meets_requirements) ? :completed : :in_progress
+  end
+
+  def activity_hub_title_key(state)
+    case state
+    when :empty
+      "activities.hub.empty_state_title"
+    when :completed
+      "activities.hub.completed_state_title"
+    else
+      "activities.hub.in_progress_state_title"
+    end
+  end
+
+  def activity_hub_description_key(state)
+    case state
+    when :completed
+      "activities.hub.completed_state_description"
+    else
+      "activities.hub.in_progress_state_description"
+    end
   end
 
   def employment_cards(payroll_accounts, aggregator_report, reporting_range)
@@ -48,7 +70,7 @@ module ActivitiesHelper
       {
         name: activity.employer_name,
         months: months,
-        edit_path: edit_activities_flow_income_employment_path(id: activity.id)
+        edit_path: review_activities_flow_income_employment_path(id: activity.id, from_edit: 1)
       }
     end
   end
@@ -60,11 +82,10 @@ module ActivitiesHelper
 
   def education_cards(activities, reporting_months)
     activities.flat_map do |activity|
-      if activity.self_attested?
-        self_attested_education_cards(activity, reporting_months)
-      else
-        validated_education_cards(activity, reporting_months)
-      end
+      EducationActivityCardBuilder.new(
+        activity: activity,
+        reporting_months: reporting_months
+      ).build
     end
   end
 
@@ -76,7 +97,7 @@ module ActivitiesHelper
       {
         name: activity.organization_name,
         months: months,
-        edit_path: edit_activities_flow_community_service_path(id: activity.id)
+        edit_path: review_activities_flow_community_service_path(id: activity.id, from_edit: 1)
       }
     end
   end
@@ -89,73 +110,8 @@ module ActivitiesHelper
       {
         name: activity.program_name,
         months: months,
-        edit_path: edit_activities_flow_job_training_path(id: activity.id)
+        edit_path: review_activities_flow_job_training_path(id: activity.id, from_edit: 1)
       }
     end
-  end
-
-  def enrollment_status_display(status)
-    case status.to_sym
-    when :full_time
-      t("components.enrollment_term_table_component.status.full_time")
-    when :three_quarter_time
-      t("components.enrollment_term_table_component.status.three_quarter_time")
-    when :half_time
-      t("components.enrollment_term_table_component.status.half_time")
-    when :less_than_half_time
-      t("components.enrollment_term_table_component.status.less_than_half_time")
-    when :enrolled
-      t("components.enrollment_term_table_component.status.enrolled")
-    else
-      t("shared.not_applicable")
-    end
-  end
-
-  private
-
-  def validated_education_cards(activity, reporting_months)
-    activity.nsc_enrollment_terms.map do |term|
-      school_name = term.school_name&.titlecase || t("activities.education.title")
-      months = reporting_months.reverse.map do |month_start|
-        overlapping = term.overlaps_month?(month_start)
-        {
-          month: month_start,
-          enrollment_status: overlapping ? enrollment_status_display(term.enrollment_status) : t("activities.hub.cards.not_enrolled"),
-          credit_hours: overlapping ? activity.credit_hours.to_i : 0
-        }
-      end
-
-      {
-        name: school_name,
-        months: months,
-        edit_path: edit_activities_flow_education_path(id: activity.id)
-      }
-    end
-  end
-
-  def self_attested_education_cards(activity, reporting_months)
-    months_by_date = activity.education_activity_months.index_by(&:month)
-    months = reporting_months.reverse.map do |month_start|
-      activity_month = months_by_date[month_start.beginning_of_month]
-      credit_hours = education_credit_hours(activity_month)
-      {
-        month: month_start,
-        credit_hours: credit_hours,
-        community_engagement_hours: activity.community_engagement_hours(credit_hours)
-      }
-    end
-
-    [ {
-      name: activity.school_name.presence || t("activities.education.title"),
-      months: months,
-      edit_path: edit_activities_flow_education_path(id: activity.id)
-    } ]
-  end
-
-  def education_credit_hours(activity_month)
-    return 0 unless activity_month
-    return activity_month.credit_hours.to_i if activity_month.has_attribute?(:credit_hours)
-
-    activity_month.hours.to_i
   end
 end

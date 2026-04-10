@@ -15,7 +15,7 @@ RSpec.describe "e2e Employment self-attestation review flow", :js, type: :featur
     visit URI(root_url).request_uri
     visit activities_flow_entry_path(client_agency_id: "sandbox")
     click_link I18n.t("activities.entries.show.continue")
-    verify_page(page, title: I18n.t("activities.hub.title"))
+    verify_page(page, title: I18n.t("activities.hub.empty_state_title"))
 
     flow = ActivityFlow.last
     month1 = flow.reporting_months.first
@@ -29,10 +29,10 @@ RSpec.describe "e2e Employment self-attestation review flow", :js, type: :featur
     end
 
     # Employer search page — search and click "Add employment manually"
-    verify_page(page, title: I18n.t("cbv.employer_searches.show.activity_flow.header"))
+    verify_page(page, title: I18n.t("activities.income.employer_searches.show.header"))
     find('.usa-input[type="search"]').fill_in with: "blahblahblah"
-    click_button I18n.t("cbv.employer_searches.show.search")
-    click_link I18n.t("cbv.employer_searches.show.activity_flow.add_employment_manually")
+    click_button I18n.t("activities.income.employer_searches.show.search")
+    click_link I18n.t("activities.income.employer_searches.employer.add_employment_manually")
 
     verify_page(page, title: I18n.t("activities.employment_info.title"))
     fill_in I18n.t("activities.employment_info.employer_name"), with: "Gainesville Wrecking"
@@ -59,6 +59,14 @@ RSpec.describe "e2e Employment self-attestation review flow", :js, type: :featur
     fill_in I18n.t("activities.employment.hours_input.gross_income_label", month: month2_label), with: "300"
     fill_in I18n.t("activities.employment.hours_input.hours_label", month: month2_label), with: "20"
     click_button I18n.t("activities.employment.hours_input.continue")
+
+    # Document upload page
+    verify_page(
+      page,
+      title: I18n.t("activities.document_uploads.new.title", name: "Gainesville Wrecking"),
+      skip_axe_rules: %w[heading-order]
+    )
+    click_button I18n.t("activities.document_uploads.new.continue")
 
     # Review page
     verify_page(page, title: I18n.t("activities.employment.review.title", employer_name: "Gainesville Wrecking"))
@@ -98,9 +106,9 @@ RSpec.describe "e2e Employment self-attestation review flow", :js, type: :featur
     fill_in I18n.t("activities.employment_info.contact_phone_number"), with: "(555) 123-4567"
     click_button I18n.t("activities.hub.save")
 
-    # Review page (edit flow — button should say "Save changes")
+    # Review page (creation flow — button should say "Save and add to my report")
     verify_page(page, title: I18n.t("activities.employment.review.title", employer_name: "Updated Employer"))
-    expect(page).to have_button I18n.t("activities.hub.save")
+    expect(page).to have_button I18n.t("activities.employment.review.save")
     expect(page).to have_content "123 New Street"
     expect(page).to have_content "Jane Smith"
     expect(page).to have_content "jane@updatedemployer.com"
@@ -158,6 +166,6 @@ RSpec.describe "e2e Employment self-attestation review flow", :js, type: :featur
     verify_page(page, title: I18n.t("activities.employment.review.title", employer_name: "Updated Employer"))
     click_button I18n.t("activities.employment.review.save")
 
-    verify_page(page, title: I18n.t("activities.hub.title"))
+    verify_page(page, title: I18n.t("activities.hub.in_progress_state_title"))
   end
 end

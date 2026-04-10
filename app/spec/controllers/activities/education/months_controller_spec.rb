@@ -6,7 +6,7 @@ RSpec.describe Activities::Education::MonthsController, type: :controller do
   render_views
 
   let(:activity_flow) { create(:activity_flow, volunteering_activities_count: 0, job_training_activities_count: 0, education_activities_count: 0, reporting_window_months: 1) }
-  let(:education_activity) { create(:education_activity, activity_flow: activity_flow, data_source: :self_attested, school_name: "Test University", status: :succeeded) }
+  let(:education_activity) { create(:education_activity, activity_flow: activity_flow, data_source: :fully_self_attested, school_name: "Test University", status: :succeeded) }
 
   before do
     session[:flow_id] = activity_flow.id
@@ -48,10 +48,24 @@ RSpec.describe Activities::Education::MonthsController, type: :controller do
       expect(response).to redirect_to(review_activities_flow_education_path(id: education_activity.id))
     end
 
+    it "threads from_edit to review when from_review is set" do
+      patch :update, params: { education_id: education_activity.id, id: 0, education_activity_month: { hours: 12 }, from_review: 1, from_edit: 1 }
+
+      expect(response).to redirect_to(review_activities_flow_education_path(id: education_activity.id, from_edit: 1))
+    end
+
+    it "threads from_edit to document uploads on completion" do
+      patch :update, params: { education_id: education_activity.id, id: 0, education_activity_month: { hours: 12 }, from_edit: 1 }
+
+      expect(response).to redirect_to(new_activities_flow_education_document_upload_path(education_id: education_activity.id, from_edit: 1))
+    end
+
     it "returns an error on a single-month flow when no-hours checkbox is selected" do
       patch :update, params: { education_id: education_activity.id, id: 0, no_hours: "1" }
 
       expect(response).to have_http_status(:unprocessable_content)
+      expect(assigns(:back_url)).to be_present
+      expect(response.body).to include("back-nav")
     end
 
     context "with multiple reporting months" do

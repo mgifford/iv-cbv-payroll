@@ -40,12 +40,17 @@ RSpec.describe Transmitters::JsonAndPdfTransmitter do
     let(:code) { "dummyconfirmationcode" }
     let(:time_now) { Time.now }
 
-    before do
-      VCR.configure do |c|
-        c.allow_http_connections_when_no_cassette = true
+    around do |example|
+      Timecop.freeze do
+        VCR.turned_off { example.run }
       end
-      allow_any_instance_of(Transmitter).to receive(:signature).and_return(sig)
-      allow_any_instance_of(Transmitter).to receive(:api_key_for_agency!).and_return("api_key_dummy")
+    end
+
+    before do
+      allow_any_instance_of(Transmitters::JsonTransmitter).to receive(:signature).and_return(sig)
+      allow_any_instance_of(Transmitters::JsonTransmitter).to receive(:api_key_for_agency!).and_return("api_key_dummy")
+      allow_any_instance_of(Transmitters::HttpPdfTransmitter).to receive(:signature).and_return(sig)
+      allow_any_instance_of(Transmitters::HttpPdfTransmitter).to receive(:api_key_for_agency!).and_return("api_key_dummy")
       allow_any_instance_of(Transmitters::HttpPdfTransmitter).to receive(:pdf_output).and_return(pdf_output)
     end
 

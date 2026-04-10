@@ -6,7 +6,6 @@ class ActivityFlowProgressIndicatorPreview < ApplicationPreview
     result = make_result(Date.new(2026, 1, 1), hours.to_f)
 
     render ActivityFlowProgressIndicator.new(
-      agency_full_name: "Test Agency",
       monthly_calculation_results: [ result ]
     )
   end
@@ -24,7 +23,6 @@ class ActivityFlowProgressIndicatorPreview < ApplicationPreview
     results << make_result(Date.new(2025, 10, 1), month_4_hours) if num_months.to_i > 3
 
     render ActivityFlowProgressIndicator.new(
-      agency_full_name: "Test Agency",
       monthly_calculation_results: results
     )
   end
@@ -35,8 +33,41 @@ class ActivityFlowProgressIndicatorPreview < ApplicationPreview
     results << make_result(Date.new(2025, 12, 1), 91)
 
     render ActivityFlowProgressIndicator.new(
-      agency_full_name: "Test Agency",
       monthly_calculation_results: results
+    )
+  end
+
+  # @param required_months range { min: 1, max: 6, step: 1 }
+  def renewal_in_progress(required_months: "3")
+    results = []
+    results << make_result(Date.new(2026, 1, 1), 0)
+    results << make_result(Date.new(2025, 12, 1), 45)
+    results << make_result(Date.new(2025, 11, 1), 82)
+    results << make_result(Date.new(2025, 10, 1), 50)
+    results << make_result(Date.new(2025, 9, 1), 0)
+    results << make_result(Date.new(2025, 8, 1), 0)
+
+    render ActivityFlowProgressIndicator.new(
+      monthly_calculation_results: results,
+      variant: :renewal,
+      required_month_count: required_months.to_i
+    )
+  end
+
+  # @param required_months range { min: 1, max: 6, step: 1 }
+  def renewal_completed(required_months: "3")
+    results = []
+    results << make_result(Date.new(2026, 1, 1), 85)
+    results << make_result(Date.new(2025, 12, 1), 90)
+    results << make_result(Date.new(2025, 11, 1), 88)
+    results << make_result(Date.new(2025, 10, 1), 84)
+    results << make_result(Date.new(2025, 9, 1), 35)
+    results << make_result(Date.new(2025, 8, 1), 93)
+
+    render ActivityFlowProgressIndicator.new(
+      monthly_calculation_results: results,
+      variant: :renewal,
+      required_month_count: required_months.to_i
     )
   end
 
@@ -46,7 +77,7 @@ class ActivityFlowProgressIndicatorPreview < ApplicationPreview
     ActivityFlowProgressCalculator::MonthlyResult.new(
       month: month,
       total_hours: hours.to_f,
-      meets_requirements: hours.to_f > ActivityFlowProgressCalculator::PER_MONTH_HOURS_THRESHOLD
+      meets_requirements: hours.to_f >= ActivityFlowProgressCalculator::PER_MONTH_HOURS_THRESHOLD
     )
   end
 end

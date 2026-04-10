@@ -1,4 +1,6 @@
 class ActivityFlow < Flow
+  include DemoLauncherOverrides
+
   belongs_to :cbv_applicant
   belongs_to :identity, optional: true
   belongs_to :activity_flow_invitation, optional: true
@@ -63,7 +65,7 @@ class ActivityFlow < Flow
 
   def any_activities_added?
     education_activities.where.associated(:nsc_enrollment_terms).exists? ||
-      education_activities.self_attested.exists? ||
+      education_activities.fully_self_attested.exists? ||
       volunteering_activities.exists? ||
       job_training_activities.exists? ||
       employment_activities.exists? ||
@@ -90,6 +92,14 @@ class ActivityFlow < Flow
     { w2: days, gig: days }
   end
 
+  def activity_month_order_oldest_first?
+    true
+  end
+
+  def renewal_reporting_window?
+    reporting_window_type == "renewal"
+  end
+
   private
 
   def set_default_reporting_window
@@ -97,7 +107,7 @@ class ActivityFlow < Flow
   end
 
   def calculate_reporting_window_months
-    return 6 if reporting_window_type == "renewal"
+    return 6 if renewal_reporting_window?
 
     client_agency = Rails.application.config.client_agencies[cbv_applicant&.client_agency_id]
     client_agency&.application_reporting_months || 1

@@ -47,9 +47,13 @@
     environment: <%= ENV["SANDBOX_PINWHEEL_ENVIRONMENT"] %>
   argyle:
     environment: <%= ENV["SANDBOX_ARGYLE_ENVIRONMENT"] %>
-  transmission_method: shared_email
+  transmission_method: sftp
   transmission_method_configuration:
-    email: <%= ENV['SLACK_TEST_EMAIL'] %>
+    user: <%= ENV['NH_DHHS_SFTP_USER'] %>
+    private_key: <%= ENV['NH_DHHS_SFTP_PRIVATE_KEY'].inspect %>
+    url: <%= ENV['NH_DHHS_SFTP_URL'] %>
+    sftp_directory: <%= ENV['NH_DHHS_SFTP_DIRECTORY'] %>
+    pdf_filename_format: CBV_%{case_number}_%{consent_timestamp}_%{confirmation_code}
   staff_portal_enabled: true
   pilot_ended: false
   sso:
@@ -62,7 +66,7 @@
     w2: 90
     gig: 90
   application_reporting_months: 2
-  invitation_valid_days: 14
+  invitation_valid_days: 30
   weekly_report:
     recipient: ffs-eng@navapbc.com
   applicant_attributes:

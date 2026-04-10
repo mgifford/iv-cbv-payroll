@@ -18,13 +18,11 @@ RSpec.describe "e2e Education self-attestation review flow", :js, type: :feature
     visit URI(root_url).request_uri
     visit activities_flow_entry_path(client_agency_id: "sandbox")
     click_link I18n.t("activities.entries.show.continue")
-    verify_page(page, title: I18n.t("activities.hub.title"))
+    verify_page(page, title: I18n.t("activities.hub.empty_state_title"))
 
     flow = ActivityFlow.last
     month1 = flow.reporting_months.first
-    month2 = flow.reporting_months.second
     month1_label = I18n.l(month1, format: :month_year)
-    month2_label = I18n.l(month2, format: :month_year)
 
     # --- Step 1: Create a new self-attested education activity ---
     visit new_activities_flow_education_path
@@ -66,44 +64,42 @@ RSpec.describe "e2e Education self-attestation review flow", :js, type: :feature
 
     # --- Step 2: Save and return to the hub ---
     click_button I18n.t("activities.education.review.save")
-    verify_page(page, title: I18n.t("activities.hub.title"))
+    verify_page(page, title: I18n.t("activities.hub.in_progress_state_title"))
 
-    # --- Step 3: Edit from the hub card through info -> months -> document upload -> review ---
+    # --- Step 3: Edit from the hub card → review (no back button) → edit school info → review ---
     within("[data-activity-type='education']") do
       click_link I18n.t("activities.hub.edit")
     end
+    verify_page(page, title: I18n.t("activities.education.review.title", school_name: "University of Illinois"))
+    expect(page).to have_button I18n.t("activities.hub.save")
+
+    # Edit school info from review
+    edit_links = all("a", text: I18n.t("activities.hub.edit"))
+    edit_links.first.click
     verify_page(page, title: I18n.t("activities.education.new.edit_title"))
     fill_in I18n.t("activities.education.new.school_name"), with: "Updated University of Illinois"
-    click_button I18n.t("activities.education.new.continue")
+    click_button I18n.t("activities.hub.save")
 
+    # Back to review with updated data
+    verify_page(page, title: I18n.t("activities.education.review.title", school_name: "Updated University of Illinois"))
+    expect(page).to have_content "601 E John St, Champaign, IL"
+
+    # Edit month 1 from review
+    month_edit_links = all(".subheader-row a", text: I18n.t("activities.education.review.edit"))
+    month_edit_links.first.click
     verify_page(page, title: I18n.t("activities.education.hours_input.heading",
       month: month1_label, organization: "Updated University of Illinois"))
     fill_in I18n.t("activities.education.hours_input.hours_label", month: month1_label), with: "6"
-    click_button I18n.t("activities.education.hours_input.continue")
-
-    verify_page(page, title: I18n.t("activities.education.hours_input.heading",
-      month: month2_label, organization: "Updated University of Illinois"))
-    fill_in I18n.t("activities.education.hours_input.hours_label", month: month2_label), with: "4"
-    click_button I18n.t("activities.education.hours_input.continue")
-
-    verify_page(
-      page,
-      title: I18n.t("activities.document_uploads.new.title", name: "Updated University of Illinois"),
-      skip_axe_rules: %w[heading-order]
-    )
-    attach_file I18n.t("activities.document_uploads.new.input_label"), upload_path, make_visible: true
-    click_button I18n.t("activities.document_uploads.new.continue")
+    click_button I18n.t("activities.hub.save")
 
     verify_page(page, title: I18n.t("activities.education.review.title", school_name: "Updated University of Illinois"))
-    expect(page).to have_button I18n.t("activities.hub.save")
-    expect(page).to have_content "601 E John St, Champaign, IL"
     expect(page).to have_content "24"
     expect(page).to have_content "16"
 
     # --- Step 4: Save and return to the hub ---
     click_button I18n.t("activities.hub.save")
 
-    verify_page(page, title: I18n.t("activities.hub.title"))
+    verify_page(page, title: I18n.t("activities.hub.in_progress_state_title"))
     expect(page).to have_content("Updated University of Illinois")
   end
 end
